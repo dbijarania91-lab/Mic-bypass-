@@ -38,8 +38,7 @@ jobs:
         sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
 
     - name: Unzip project
-      run: |
-        unzip -q MicBypass_SourceCode_v2.zip
+      run: unzip -q MicBypass_SourceCode_v3.zip
 
     - name: Build APK
       run: |
