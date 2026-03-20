@@ -15,25 +15,36 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Install Gradle 8.0
+      run: |
+        wget -q https://services.gradle.org/distributions/gradle-8.0-bin.zip -O gradle.zip
+        unzip -q gradle.zip -d /opt/gradle
+        echo "/opt/gradle/gradle-8.0/bin" >> $GITHUB_PATH
+
+    - name: Install Android SDK
+      run: |
+        mkdir -p $HOME/android-sdk/cmdline-tools
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O cmdtools.zip
+        unzip -q cmdtools.zip -d $HOME/android-sdk/cmdline-tools
+        mv $HOME/android-sdk/cmdline-tools/cmdline-tools $HOME/android-sdk/cmdline-tools/latest
+        echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_SDK_ROOT=$HOME/android-sdk" >> $GITHUB_ENV
+        echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
+
+    - name: Accept licenses and install SDK
+      run: |
+        yes | sdkmanager --licenses
+        sdkmanager "platform-tools" "platforms;android-34" "build-tools;34.0.0"
+
     - name: Unzip project
       run: |
-        unzip MicBypass_SourceCode_v2.zip
-        ls -la MicBypass/
+        unzip -q MicBypass_SourceCode_v2.zip
 
-    - name: Download gradle wrapper jar
-      run: |
-        mkdir -p MicBypass/gradle/wrapper
-        curl -L "https://github.com/gradle/gradle/raw/v8.0.0/gradle/wrapper/gradle-wrapper.jar" \
-          -o MicBypass/gradle/wrapper/gradle-wrapper.jar
-        echo "Wrapper jar size: $(wc -c < MicBypass/gradle/wrapper/gradle-wrapper.jar) bytes"
-
-    - name: Make gradlew executable
-      run: chmod +x MicBypass/gradlew
-
-    - name: Build debug APK
+    - name: Build APK
       run: |
         cd MicBypass
-        ./gradlew assembleDebug --no-daemon
+        gradle assembleDebug --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
