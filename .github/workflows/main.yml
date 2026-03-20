@@ -9,34 +9,23 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v4
 
-    - name: List files (debug)
-      run: ls -la
-
-    - name: Unzip project
-      run: |
-        unzip MicBypass_SourceCode.zip
-        echo "--- After unzip ---"
-        ls -la
-        echo "--- Inside MicBypass ---"
-        ls -la MicBypass/
-
     - name: Set up Java 17
       uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Fix gradle wrapper properties
+    - name: Unzip project
       run: |
-        cd MicBypass
-        mkdir -p gradle/wrapper
-        cat > gradle/wrapper/gradle-wrapper.properties << 'EOF'
-        distributionBase=GRADLE_USER_HOME
-        distributionPath=wrapper/dists
-        distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
-        zipStoreBase=GRADLE_USER_HOME
-        zipStorePath=wrapper/dists
-        EOF
+        unzip MicBypass_SourceCode_v2.zip
+        ls -la MicBypass/
+
+    - name: Download gradle wrapper jar
+      run: |
+        mkdir -p MicBypass/gradle/wrapper
+        curl -L "https://github.com/gradle/gradle/raw/v8.0.0/gradle/wrapper/gradle-wrapper.jar" \
+          -o MicBypass/gradle/wrapper/gradle-wrapper.jar
+        echo "Wrapper jar size: $(wc -c < MicBypass/gradle/wrapper/gradle-wrapper.jar) bytes"
 
     - name: Make gradlew executable
       run: chmod +x MicBypass/gradlew
@@ -44,10 +33,7 @@ jobs:
     - name: Build debug APK
       run: |
         cd MicBypass
-        ./gradlew assembleDebug --no-daemon --stacktrace 2>&1 | tail -50
-
-    - name: Find APK
-      run: find MicBypass -name "*.apk" 2>/dev/null
+        ./gradlew assembleDebug --no-daemon
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
